@@ -45,8 +45,9 @@ add_custom_command(
 add_custom_command(
     OUTPUT
         ${ANTLR_OUT}/DecafParser.cpp ${ANTLR_OUT}/DecafParser.h
+        ${ANTLR_OUT}/DecafParserVisitor.h ${ANTLR_OUT}/DecafParserBaseVisitor.h
     COMMAND java -jar ${ANTLR_JAR}
-            -Dlanguage=Cpp -o ${ANTLR_OUT} -lib ${ANTLR_OUT}
+            -Dlanguage=Cpp -visitor -o ${ANTLR_OUT} -lib ${ANTLR_OUT}
             ${CMAKE_CURRENT_SOURCE_DIR}/DecafParser.g4
     DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/DecafParser.g4

@@ -5,6 +5,43 @@
 #include <antlr4-runtime.h>
 #include "DecafScanner.h"
 #include "DecafParser.h"
+#include "DecafParserBaseVisitor.h"
+
+// Обходит дерево разбора и печатает каждый узел с отступом.
+class PrintVisitor : public DecafParserBaseVisitor {
+    int depth = 0;
+
+    void indent() {
+        for (int i = 0; i < depth; ++i) std::cout << "  ";
+    }
+
+    std::any visitRule(antlr4::ParserRuleContext *ctx,
+                       const std::string &name) {
+        indent();
+        std::cout << name << "\n";
+        ++depth;
+        auto result = visitChildren(ctx);
+        --depth;
+        return result;
+    }
+
+public:
+    std::any visitProgram(DecafParser::ProgramContext *ctx) override {
+        return visitRule(ctx, "program");
+    }
+    std::any visitStatement(DecafParser::StatementContext *ctx) override {
+        return visitRule(ctx, "statement");
+    }
+    std::any visitExpr(DecafParser::ExprContext *ctx) override {
+        return visitRule(ctx, "expr");
+    }
+    std::any visitTerm(DecafParser::TermContext *ctx) override {
+        return visitRule(ctx, "term");
+    }
+    std::any visitAtom(DecafParser::AtomContext *ctx) override {
+        return visitRule(ctx, "atom");
+    }
+};
 
 // Считает количество ошибок, подавляет вывод по умолчанию.
 class ErrorListener : public antlr4::BaseErrorListener {
@@ -80,7 +117,11 @@ int main(int argc, char *argv[]) {
     parser.removeErrorListeners();
     parser.addErrorListener(&parserErrors);
 
-    parser.program();
+    auto *tree = parser.program();
+    if (lexerErrors.errors + parserErrors.errors == 0) {
+        PrintVisitor printer;
+        printer.visit(tree);
+    }
 
     int total = lexerErrors.errors + parserErrors.errors;
     return total > 0 ? 1 : 0;
